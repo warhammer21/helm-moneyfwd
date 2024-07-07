@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "my-ml-api.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "my-ml-api.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  ports:
+    - port: 80
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "my-ml-api.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

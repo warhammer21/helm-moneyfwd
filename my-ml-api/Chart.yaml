@@ -1,0 +1,4 @@
+apiVersion: v2
+name: my-ml-api
+description: A Helm chart for deploying Flask ML API
+version: 0.1.0

@@ -1,0 +1,3 @@
+image:
+  repository: docker.io/warhammer21/helmchart
+  tag: dev
