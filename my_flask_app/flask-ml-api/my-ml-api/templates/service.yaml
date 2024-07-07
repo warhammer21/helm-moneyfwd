@@ -1,0 +1,17 @@
+# templates/service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "my-ml-api.fullname" . }}
+  labels:
+    {{- include "my-ml-api.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 5000
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "my-ml-api.selectorLabels" . | nindent 4 }}

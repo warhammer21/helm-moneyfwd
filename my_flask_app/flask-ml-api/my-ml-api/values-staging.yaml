@@ -1,0 +1,5 @@
+image:
+  tag: "staging"
+service:
+  type: NodePort
+  port: 5002

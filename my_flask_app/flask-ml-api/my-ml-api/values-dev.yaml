@@ -1,0 +1,22 @@
+# values-dev.yaml
+
+image:
+  repository: warhammer21/ml-ops
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5000
+
+env:
+  - name: FLASK_ENV
+    value: "production"
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

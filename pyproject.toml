@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "flaskiso_helm"
+version = "0.1.0"
+description = ""
+authors = ["shreyak vashisht"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+scikit-learn = "^1.5.0"
+flask = "^2.0"
+awsebcli = "3.20.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
