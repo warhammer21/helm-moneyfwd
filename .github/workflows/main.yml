@@ -45,14 +45,16 @@ jobs:
         service_account_key: ${{ secrets.GKE_SA_KEY }}
         export_default_credentials: true
 
+    - name: Authenticate to Google Cloud
+      run: echo "${{ secrets.GKE_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
+
+    - name: Configure GKE Cluster
+      run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
+
     - name: Set up kubectl
       uses: azure/setup-kubectl@v1
       with:
         version: v1.21.0
-
-    - name: Configure GKE Cluster
-      run: |
-        gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
 
     - name: Deploy Helm chart
       run: |
