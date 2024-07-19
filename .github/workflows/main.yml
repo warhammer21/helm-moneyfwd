@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -31,33 +32,39 @@ jobs:
         tags: docker.io/warhammer21/helmchart:latest
 
   deploy:
-    needs: build
     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    permissions:
+      contents: 'read'
+      id-token: 'write'
 
-    - name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v1
-      with:
-        version: 'latest'
-        service_account_key: ${{ secrets.GKE_SA_KEY }}
-        export_default_credentials: true
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
 
     - name: Authenticate to Google Cloud
-      run: echo "${{ secrets.GKE_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
-
-    - name: Configure GKE Cluster
-      run: gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_CLUSTER_ZONE }}
-
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v1
+      uses: google-github-actions/auth@v1
       with:
-        version: v1.21.0
+        credentials_json: ${{ secrets.GKE_SA_KEY }}
 
-    - name: Deploy Helm chart
+    - name: Get GKE Credentials
+      uses: google-github-actions/get-gke-credentials@v1
+      with:
+        cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+        location: ${{ secrets.GKE_CLUSTER_ZONE }}
+        project_id: ${{ secrets.GKE_PROJECT_ID }}
+
+    - name: Install Helm
       run: |
-        helm upgrade --install my-ml-api ./my-ml-api-chart \
-          --set image.repository=docker.io/warhammer21/helmchart \
-          --set image.tag=latest
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+    - name: Deploy
+      run: |
+        helm upgrade --install my-ml-api ./my-ml-api --wait
+        kubectl rollout status deployment/my-ml-api
+        kubectl get services -o wide
+
+    - name: Expose Service
+      run: |
+        kubectl expose deployment my-ml-api --type=LoadBalancer --name=my-ml-api-service --port=80 --target-port=8000
+        kubectl get services my-ml-api-service
