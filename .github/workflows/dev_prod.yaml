@@ -32,7 +32,6 @@ jobs:
 
   deploy-dev:
     runs-on: ubuntu-latest
-    needs: build
 
     permissions:
       contents: 'read'
@@ -50,9 +49,9 @@ jobs:
     - name: Get GKE Credentials
       uses: google-github-actions/get-gke-credentials@v1
       with:
-        cluster_name: my-gke-cluster
-        location: us-central1-a
-        project_id: gke-cluster-426323
+        cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+        location: ${{ secrets.GKE_CLUSTER_ZONE }}
+        project_id: ${{ secrets.GKE_PROJECT_ID }}
 
     - name: Install Helm
       run: |
@@ -64,20 +63,17 @@ jobs:
         kubectl rollout status deployment/my-ml-api-dev --namespace dev
         kubectl get services --namespace dev -o wide
 
-  test-dev:
-    runs-on: ubuntu-latest
-    needs: deploy-dev
-
-    steps:
     - name: Run tests
       run: |
-        # Example test command, replace with your actual tests
-        echo "Running tests..."
-        # Add your test commands here
+        # Simple test: linting the Kubernetes manifest files
+        echo "Running linting tests..."
+        helm lint ./my-ml-api
+        echo "Linting tests completed."
 
   deploy-prod:
     runs-on: ubuntu-latest
-    needs: test-dev
+
+    needs: deploy-dev
 
     permissions:
       contents: 'read'
@@ -95,9 +91,9 @@ jobs:
     - name: Get GKE Credentials
       uses: google-github-actions/get-gke-credentials@v1
       with:
-        cluster_name: my-gke-cluster
-        location: us-central1-a
-        project_id: gke-cluster-426323
+        cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+        location: ${{ secrets.GKE_CLUSTER_ZONE }}
+        project_id: ${{ secrets.GKE_PROJECT_ID }}
 
     - name: Install Helm
       run: |
@@ -108,3 +104,8 @@ jobs:
         helm upgrade --install my-ml-api-prod ./my-ml-api --namespace prod --values ./my-ml-api/values-prod.yaml --wait
         kubectl rollout status deployment/my-ml-api-prod --namespace prod
         kubectl get services --namespace prod -o wide
+
+    - name: Expose Service
+      run: |
+        kubectl expose deployment my-ml-api-prod --namespace prod --type=LoadBalancer --name=my-ml-api-service --port=80 --target-port=8000
+        kubectl get services my-ml-api-service --namespace prod -o wide
