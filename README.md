@@ -19,30 +19,25 @@ store **GKE_CLUSTER_NAME,GKE_CLUSTER_ZONE,GKE_PROJECT_ID**  as GitHub secret
 
 ## Explanation of the workflow and logic 
 
-Build Job <br />
-Purpose: Build and push Docker images. <br />
-Steps: <br />
-Checkout code. <br />
-Set up Docker Buildx. <br />
-Login to Docker Hub. <br />
-Build and push Docker image. <br />
-Deploy to Dev Job <br />
-Purpose: Deploy the application to the development environment. <br />
-Steps: <br /> 
-Checkout code. <br />
-Authenticate to Google Cloud. <br />
-Get GKE credentials. <br />
-Install Helm. <br />
-Deploy Helm chart to the dev namespace. <br />
-Run linting tests on the Helm chart. <br />
-Deploy to Prod Job <br /> 
+Build Job<br />
+Purpose: Build and push Docker images.<br />
+Steps: Checkout code, set up Docker Buildx, login to Docker Hub, build and push Docker image.<br />
+
+Deploy to Dev Job<br />
+Purpose: Deploy the application to the development environment.<br />
+Steps: Checkout code, authenticate to Google Cloud, get GKE credentials, install Helm, deploy Helm chart to the dev namespace, and run linting tests.<br />
+
+Deploy to Prod Job<br />
 Purpose: Deploy the application to the production environment.<br />
-Steps: 
-Checkout code.
-Authenticate to Google Cloud.
-Get GKE credentials.
-Install Helm.
-Deploy Helm chart to the prod namespace.
-Expose the service via a LoadBalancer.
-4. Testing
-Simple Test: Run linting tests to validate the Helm charts.
+Steps: Checkout code, authenticate to Google Cloud, get GKE credentials, install Helm, deploy Helm chart to the prod namespace, and expose the service via a LoadBalancer.<br />
+
+Testing<br />
+Simple Test: Run linting tests to validate the Helm charts.<br />
+
+
+
+
+
+
+
+
