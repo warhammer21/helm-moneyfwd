@@ -1,0 +1,29 @@
+name: Deploy Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Kubeconfig
+      run: |
+        mkdir -p $HOME/.kube
+        echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
+
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+    - name: Deploy Helm Chart
+      run: |
+        helm install my-ml-api .
+      env:
+        KUBECONFIG: $HOME/.kube/config
