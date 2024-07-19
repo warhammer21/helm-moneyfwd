@@ -18,11 +18,10 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           version: '416.0.0'
-          service_account_key: ${{ secrets.GKE_SA_KEY }}
 
       - name: Authenticate to GKE
         run: |
-          echo "${{ secrets.GKE_SA_KEY }}" > ${HOME}/gcp-key.json
+          echo "${{ secrets.GKE_SA_KEY }}" | base64 --decode > ${HOME}/gcp-key.json
           gcloud auth activate-service-account --key-file=${HOME}/gcp-key.json
           gcloud config set project gke-cluster-426323
           gcloud config set compute/zone us-central1-a
@@ -34,9 +33,6 @@ jobs:
 
       - name: Deploy
         run: |
-          gcloud container clusters get-credentials my-gke-cluster \
-            --zone us-central1-a \
-            --project gke-cluster-426323
           helm upgrade --install my-ml-api ./my-ml-api \
             --wait
           kubectl rollout status deployment/my-ml-api
