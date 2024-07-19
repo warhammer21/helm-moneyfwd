@@ -7,25 +7,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  setup-and-deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
         with:
-          version: '416.0.0'
+          credentials_json: ${{ secrets.GKE_SA_KEY }}
 
-      - name: Authenticate to GKE
-        run: |
-          echo "${{ secrets.GKE_SA_KEY }}" | base64 --decode > ${HOME}/gcp-key.json
-          gcloud auth activate-service-account --key-file=${HOME}/gcp-key.json
-          gcloud config set project gke-cluster-426323
-          gcloud config set compute/zone us-central1-a
-          gcloud container clusters get-credentials my-gke-cluster
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: my-gke-cluster
+          location: us-central1-a
+          project_id: gke-cluster-426323
 
       - name: Install Helm
         run: |
@@ -33,7 +36,6 @@ jobs:
 
       - name: Deploy
         run: |
-          helm upgrade --install my-ml-api ./my-ml-api \
-            --wait
+          helm upgrade --install my-ml-api ./my-ml-api --wait
           kubectl rollout status deployment/my-ml-api
           kubectl get services -o wide
