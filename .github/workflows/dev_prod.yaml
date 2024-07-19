@@ -1,0 +1,47 @@
+name: Helm Chart Deployment
+
+on:
+  push:
+    branches:
+      - env-testing
+  workflow_dispatch:
+
+jobs:
+  setup-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: my-gke-cluster
+          location: us-central1-a
+          project_id: gke-cluster-426323
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+      - name: Deploy to Dev
+        run: |
+          helm upgrade --install my-ml-api-dev ./my-ml-api --namespace dev --values ./my-ml-api/values-dev.yaml --wait
+          kubectl rollout status deployment/my-ml-api --namespace dev
+          kubectl get services --namespace dev -o wide
+
+      - name: Deploy to Prod
+        run: |
+          helm upgrade --install my-ml-api-prod ./my-ml-api --namespace prod --values ./my-ml-api/values-prod.yaml --wait
+          kubectl rollout status deployment/my-ml-api --namespace prod
+          kubectl get services --namespace prod -o wide
