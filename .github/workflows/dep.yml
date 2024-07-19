@@ -20,6 +20,10 @@ jobs:
       env:
         KUBECONFIG: $HOME/.kube/config
 
+    - name: Validate Kubeconfig
+      run: |
+        cat $HOME/.kube/config
+
     - name: Install kubectl
       run: |
         curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
