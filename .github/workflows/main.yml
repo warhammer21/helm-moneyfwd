@@ -1,70 +1,70 @@
-name: CI/CD Pipeline
+# name: CI/CD Pipeline
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+#     - name: Set up Docker Buildx
+#       uses: docker/setup-buildx-action@v1
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_HUB_USERNAME }}
-        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+#     - name: Login to Docker Hub
+#       uses: docker/login-action@v1
+#       with:
+#         username: ${{ secrets.DOCKER_HUB_USERNAME }}
+#         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-    - name: Build and push Docker image
-      id: docker_build
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: true
-        tags: docker.io/warhammer21/helmchart:latest
+#     - name: Build and push Docker image
+#       id: docker_build
+#       uses: docker/build-push-action@v2
+#       with:
+#         context: .
+#         push: true
+#         tags: docker.io/warhammer21/helmchart:latest
 
-  deploy:
-    runs-on: ubuntu-latest
+#   deploy:
+#     runs-on: ubuntu-latest
 
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+#     permissions:
+#       contents: 'read'
+#       id-token: 'write'
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v3
 
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v1
-      with:
-        credentials_json: ${{ secrets.GKE_SA_KEY }}
+#     - name: Authenticate to Google Cloud
+#       uses: google-github-actions/auth@v1
+#       with:
+#         credentials_json: ${{ secrets.GKE_SA_KEY }}
 
-    - name: Get GKE Credentials
-      uses: google-github-actions/get-gke-credentials@v1
-      with:
-        cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
-        location: ${{ secrets.GKE_CLUSTER_ZONE }}
-        project_id: ${{ secrets.GKE_PROJECT_ID }}
+#     - name: Get GKE Credentials
+#       uses: google-github-actions/get-gke-credentials@v1
+#       with:
+#         cluster_name: ${{ secrets.GKE_CLUSTER_NAME }}
+#         location: ${{ secrets.GKE_CLUSTER_ZONE }}
+#         project_id: ${{ secrets.GKE_PROJECT_ID }}
 
-    - name: Install Helm
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+#     - name: Install Helm
+#       run: |
+#         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-    - name: Deploy
-      run: |
-        helm upgrade --install my-ml-api ./my-ml-api --wait
-        kubectl rollout status deployment/my-ml-api
-        kubectl get services -o wide
+#     - name: Deploy
+#       run: |
+#         helm upgrade --install my-ml-api ./my-ml-api --wait
+#         kubectl rollout status deployment/my-ml-api
+#         kubectl get services -o wide
 
-    - name: Expose Service
-      run: |
-        kubectl expose deployment my-ml-api --type=LoadBalancer --name=my-ml-api-service --port=80 --target-port=8000
-        kubectl get services my-ml-api-service
+#     - name: Expose Service
+#       run: |
+#         kubectl expose deployment my-ml-api --type=LoadBalancer --name=my-ml-api-service --port=80 --target-port=8000
+#         kubectl get services my-ml-api-service
