@@ -24,6 +24,6 @@ jobs:
 
     - name: Deploy Helm Chart
       run: |
-        helm install my-ml-api .
+        helm install my-ml-api ./my-ml-api
       env:
         KUBECONFIG: $HOME/.kube/config
