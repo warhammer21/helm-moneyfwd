@@ -1,47 +1,43 @@
-name: Deploy Helm Chart
+name: Helm Chart Deployment
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Kubeconfig
-      run: |
-        mkdir -p $HOME/.kube
-        echo "${{ secrets.KUBECONFIG_CONTENT }}" > $HOME/.kube/config
-      env:
-        KUBECONFIG: $HOME/.kube/config
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '416.0.0'
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Validate Kubeconfig
-      run: |
-        cat $HOME/.kube/config
+      - name: Authenticate to GKE
+        run: |
+          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
+          gcloud config set project gke-cluster-426323
+          gcloud config set compute/zone us-central1-a
+          gcloud container clusters get-credentials my-gke-cluster
 
-    - name: Install kubectl
-      run: |
-        curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-    - name: Verify Kubernetes connection
-      run: |
-        kubectl cluster-info
-      env:
-        KUBECONFIG: $HOME/.kube/config
-
-    - name: Install Helm
-      run: |
-        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-    - name: Deploy Helm Chart
-      run: |
-        helm install my-ml-api ./my-ml-api
-      env:
-        KUBECONFIG: $HOME/.kube/config
+      - name: Deploy
+        run: |
+          gcloud container clusters get-credentials my-gke-cluster \
+            --zone us-central1-a \
+            --project gke-cluster-426323
+          helm upgrade --install my-ml-api ./my-ml-api \
+            --wait
+          kubectl rollout status deployment/my-ml-api
+          kubectl get services -o wide
