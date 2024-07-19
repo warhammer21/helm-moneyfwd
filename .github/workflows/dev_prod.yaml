@@ -32,6 +32,7 @@ jobs:
 
   deploy-dev:
     runs-on: ubuntu-latest
+    needs: build
 
     permissions:
       contents: 'read'
@@ -62,3 +63,48 @@ jobs:
         helm upgrade --install my-ml-api-dev ./my-ml-api --namespace dev --values ./my-ml-api/values-dev.yaml --wait
         kubectl rollout status deployment/my-ml-api-dev --namespace dev
         kubectl get services --namespace dev -o wide
+
+  test-dev:
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+
+    steps:
+    - name: Run tests
+      run: |
+        # Example test command, replace with your actual tests
+        echo "Running tests..."
+        # Add your test commands here
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: test-dev
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+    - name: Get GKE Credentials
+      uses: google-github-actions/get-gke-credentials@v1
+      with:
+        cluster_name: my-gke-cluster
+        location: us-central1-a
+        project_id: gke-cluster-426323
+
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+    - name: Deploy to Prod
+      run: |
+        helm upgrade --install my-ml-api-prod ./my-ml-api --namespace prod --values ./my-ml-api/values-prod.yaml --wait
+        kubectl rollout status deployment/my-ml-api-prod --namespace prod
+        kubectl get services --namespace prod -o wide
