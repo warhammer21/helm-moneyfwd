@@ -6,8 +6,8 @@ repplace from all these places with your tag, these places are the value files u
 values.yaml <br />
 values-dev.yaml <br />
 values-prod.yaml <br />
-dev_prod/yaml <br />
-specify your hub username/pass by **DOCKER_HUB_USERNAME**,**DOCKER_HUB_ACCESS_TOKEN** as GitHub secret  <br />
+dev_prod.yaml <br />
+store your hub username/pass by **DOCKER_HUB_USERNAME**,**DOCKER_HUB_ACCESS_TOKEN** as GitHub secret  <br />
 <br/>
 <br/>
 3. set up a GKE cluster <br />
